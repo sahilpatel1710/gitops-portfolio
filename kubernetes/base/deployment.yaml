@@ -34,9 +34,7 @@ spec:
             - name: APP_VERSION
               value: "1.0.0"
             - name: ENVIRONMENT
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: "default"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
