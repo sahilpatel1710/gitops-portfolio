@@ -3,13 +3,12 @@ kind: Kustomization
 
 namespace: sample-api-dev
 
-namePrefix: dev-
-commonLabels:
-  environment: dev
-
 resources:
   - namespace.yaml
   - ../../base
 
 patches:
   - path: deployment-patch.yaml
+
+commonLabels:
+  environment: dev

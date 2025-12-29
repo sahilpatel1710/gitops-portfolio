@@ -3,13 +3,12 @@ kind: Kustomization
 
 namespace: sample-api-staging
 
-namePrefix: staging-
-commonLabels:
-  environment: staging
-
 resources:
   - namespace.yaml
   - ../../base
 
 patches:
   - path: deployment-patch.yaml
+
+commonLabels:
+  environment: staging

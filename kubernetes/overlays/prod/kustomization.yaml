@@ -3,13 +3,12 @@ kind: Kustomization
 
 namespace: sample-api-prod
 
-namePrefix: prod-
-commonLabels:
-  environment: production
-
 resources:
   - namespace.yaml
   - ../../base
 
 patches:
   - path: deployment-patch.yaml
+
+commonLabels:
+  environment: production
