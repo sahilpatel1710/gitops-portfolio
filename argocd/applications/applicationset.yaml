@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sample-api-environments
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            namespace: sample-api-dev
+            syncPolicy: automated
+          - env: staging
+            namespace: sample-api-staging
+            syncPolicy: automated
+          - env: prod
+            namespace: sample-api-prod
+            syncPolicy: manual
+  
+  template:
+    metadata:
+      name: 'sample-api-{{env}}'
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: sample-api
+        environment: '{{env}}'
+    spec:
+      project: gitops-portfolio
+      
+      source:
+        # TODO: Update with your GitHub repository URL
+        repoURL: https://github.com/sahilpatel1710/gitops-portfolio.git
+        targetRevision: HEAD
+        path: 'kubernetes/overlays/{{env}}'
+      
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

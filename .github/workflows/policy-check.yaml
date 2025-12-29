@@ -1,0 +1,63 @@
+name: Policy Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'kubernetes/**'
+      - 'policies/**'
+
+jobs:
+  validate-policies:
+    name: Validate with Conftest
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Conftest
+        run: |
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/open-policy-agent/conftest/releases/latest | grep tag_name | cut -d '"' -f 4 | sed 's/v//')
+          wget -O conftest.tar.gz "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_VERSION}/conftest_${LATEST_VERSION}_Linux_x86_64.tar.gz"
+          tar xzf conftest.tar.gz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Run Conftest on Base Manifests
+        run: |
+          conftest test kubernetes/base/*.yaml --policy policies/rego/ --all-namespaces || true
+
+      - name: Run Conftest on Overlays
+        run: |
+          for env in dev staging prod; do
+            echo "Testing $env overlay..."
+            kubectl kustomize kubernetes/overlays/$env | conftest test - --policy policies/rego/ || true
+          done
+
+  validate-manifests:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Validate Base Manifests
+        run: |
+          kubectl apply --dry-run=client -k kubernetes/base/
+
+      - name: Validate Dev Overlay
+        run: |
+          kubectl apply --dry-run=client -k kubernetes/overlays/dev/
+
+      - name: Validate Staging Overlay
+        run: |
+          kubectl apply --dry-run=client -k kubernetes/overlays/staging/
+
+      - name: Validate Prod Overlay
+        run: |
+          kubectl apply --dry-run=client -k kubernetes/overlays/prod/

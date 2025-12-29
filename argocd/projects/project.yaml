@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: gitops-portfolio
+  namespace: argocd
+spec:
+  description: GitOps Portfolio Project
+  
+  # Source repositories
+  sourceRepos:
+    - '*'
+  
+  # Destination clusters and namespaces
+  destinations:
+    - namespace: sample-api-dev
+      server: https://kubernetes.default.svc
+    - namespace: sample-api-staging
+      server: https://kubernetes.default.svc
+    - namespace: sample-api-prod
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  
+  # Cluster resources that may be created
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  
+  # Allow all namespaced resources
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  
+  # Roles for the project
+  roles:
+    - name: developer
+      description: Developer access
+      policies:
+        - p, proj:gitops-portfolio:developer, applications, get, gitops-portfolio/*, allow
+        - p, proj:gitops-portfolio:developer, applications, sync, gitops-portfolio/*, allow
+    - name: admin
+      description: Admin access
+      policies:
+        - p, proj:gitops-portfolio:admin, applications, *, gitops-portfolio/*, allow
