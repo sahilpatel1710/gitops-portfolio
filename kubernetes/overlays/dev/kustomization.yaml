@@ -8,6 +8,7 @@ commonLabels:
   environment: dev
 
 resources:
+  - namespace.yaml
   - ../../base
 
 patches:
